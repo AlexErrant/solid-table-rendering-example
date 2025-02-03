@@ -1,7 +1,7 @@
 import { Key } from "@solid-primitives/keyed";
-import { Row, flexRender } from "@tanstack/solid-table";
-import { Component, For } from "solid-js";
-import { Cell } from "./Cell";
+import { Row } from "@tanstack/solid-table";
+import { Component, Index } from "solid-js";
+import { Dynamic } from "solid-js/web";
 
 export interface RowProps {
   row: Row<any>;
@@ -12,11 +12,16 @@ export const TableRow: Component<RowProps> = (props: RowProps) => {
   return (
     <>
       <tr>
-        <Key each={props.row.getVisibleCells()} by={c => c.id}>
+        <Index each={props.row.getVisibleCells()}>
           {(cell) => (
-            <td><Cell text={cell().getValue() as string} /></td>
+            <td>
+              <Dynamic
+                component={cell().column.columnDef.cell}
+                {...cell().getContext()}
+              />
+            </td>
           )}
-        </Key>
+        </Index>
       </tr>
     </>
   );

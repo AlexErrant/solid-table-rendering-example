@@ -7,7 +7,7 @@ import { Cell } from "./Cell";
 import { TableKeyed } from "./table-keyed/TableKeyed";
 import { TableNoFR } from "./table-no-flex-render/TableNoFR";
 
-interface Person {
+export interface Person {
   id: string;
   name: string;
   surname: string;
@@ -15,11 +15,26 @@ interface Person {
 
 const people: Person[] = [
   { id: "1", name: "John", surname: "Adams" },
-  { id:"2", name: "George", surname: "Jones" },
+  { id: "2", name: "George", surname: "Jones" },
 ];
 
 const App: Component = () => {
   const colDefs: ColumnDef<any, any>[] = [
+    {
+      accessorKey: "id",
+      cell: (info) => (
+        <>
+          <input
+            type="checkbox"
+            class="checkbox"
+            checked={info.row.getIsSelected()}
+            disabled={!info.row.getCanSelect()}
+            onChange={info.row.getToggleSelectedHandler()}
+          />
+          <Cell text={info.getValue() as string} />
+        </>
+      ),
+    },
     {
       accessorKey: "name",
       cell: (info) => <Cell text={info.getValue() as string} />,
@@ -36,7 +51,7 @@ const App: Component = () => {
     console.log("Update Person Naive")
     setDataNaive((prev) => {
       const newList = [...prev];
-      newList[0].name = "Jeff";
+      newList[0].name = "Jeff" + Math.random();
       return newList;
     });
   }
