@@ -22,33 +22,6 @@ interface Food {
   name: string;
 }
 
-const colDefs: ColumnDef<any, any>[] = [
-  {
-    accessorKey: "id",
-    cell: (info) => (
-      <>
-        <input
-          type="checkbox"
-          class="checkbox"
-          checked={info.row.getIsSelected()}
-          disabled={!info.row.getCanSelect()}
-          onChange={info.row.getToggleSelectedHandler()}
-        />
-        {info.getValue()}
-      </>
-    ),
-  },
-  {
-    accessorKey: "name",
-    cell: (info) => <>{info.getValue()}</>, // putting it in a fragment is important - this makes it reactive
-  },
-  {
-    id: "nameLength",
-    header: () => "name length", // make it a signal
-    cell: (info) => <>{info.row.original.name.length}</>,
-  },
-];
-
 const App: Component = () => {
   const [data, setData] = createSignal(initialData);
   const [rowSelection, setRowSelection] = createSignal<RowSelectionState>({});
@@ -57,6 +30,36 @@ const App: Component = () => {
     "name",
     "nameLength",
   ]);
+  let total = () =>
+    data()
+      .map((d) => d.name.length)
+      .reduce((x, y) => x + y, 0);
+  const colDefs = [
+    {
+      accessorKey: "id",
+      cell: (info) => (
+        <>
+          <input
+            type="checkbox"
+            class="checkbox"
+            checked={info.row.getIsSelected()}
+            disabled={!info.row.getCanSelect()}
+            onChange={info.row.getToggleSelectedHandler()}
+          />
+          {info.getValue()}
+        </>
+      ),
+    },
+    {
+      accessorKey: "name",
+      cell: (info) => <>{info.getValue()}</>, // putting it in a fragment is important - this makes it reactive
+    },
+    {
+      id: "nameLength",
+      header: () => () => <>name length - total {total()}</>, // first fn is for Tanstack, second fn makes it a signal for Solid
+      cell: (info) => <>{info.row.original.name.length}</>,
+    },
+  ] satisfies ColumnDef<Food>[];
   const table = createSolidTable({
     get data() {
       return data();
@@ -85,7 +88,7 @@ const App: Component = () => {
           setData((old) => {
             let newArr = [...old];
             let randomI = randomIndex(old);
-            let id = Math.max(...old.map((o) => Number.parseInt(o.id))) + 1;
+            let id = Math.max(...old.map((o) => Number.parseInt(o.id)), 0) + 1;
             newArr.splice(randomI, 0, {
               id: id.toString(),
               name: getRandomFood(),
